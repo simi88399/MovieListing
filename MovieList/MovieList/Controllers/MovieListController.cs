@@ -1,5 +1,6 @@
 ﻿using MovieList.Interfaces;
 using MovieList.Models;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace MovieList.Controllers
     
     public class MovieListController : Controller
     {
+        Logger logger = LogManager.GetCurrentClassLogger();
         private readonly IMovieListRepo _movieListRepo;
         public MovieListController(IMovieListRepo movieListRepo)
         {
@@ -19,7 +21,7 @@ namespace MovieList.Controllers
 
         [HttpGet]
         public ActionResult Index()
-        {
+       {
             var data = _movieListRepo.GetAll();
             return View(data);
         }
@@ -29,6 +31,7 @@ namespace MovieList.Controllers
             return View();
         }
         [HttpPost]
+        [Obsolete]
         public ActionResult Create(MovieListModel req)
         {
             try
@@ -38,8 +41,9 @@ namespace MovieList.Controllers
 
                 return RedirectToAction("Index");
             }
-            catch
+            catch(Exception ex)
             {
+                logger.ErrorException("Error occured in Movie controller create Action",ex);
                 return View();
             }
         }
@@ -71,11 +75,20 @@ namespace MovieList.Controllers
                 return View();
             }
         }
-        [HttpDelete]
-        public ActionResult Delete(int id)
+        [HttpGet]
+        [Obsolete]
+        public ActionResult Delete(int Id)
         {
-            var data = _movieListRepo.Delete(id);
-            return View(data);
+            try
+            {
+                var data = _movieListRepo.Delete(Id);
+                return Json(true);
+            }
+            catch (Exception ex)
+            {
+                logger.ErrorException("Error occured in Movie controller index Action", ex);
+                return Json(false);
+            }
         }
     }
 }
